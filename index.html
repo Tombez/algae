@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Eat cells smaller than you and don't get eaten by the bigger ones, as an MMO">
+	<meta name="keywords" content="algae, io, cell, cells, virus, bacteria, blob, game, games, web game, html5, fun, flash">
+	<meta name="robots" content="index, follow">
+	<meta name="viewport" content="minimal-ui, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>Algae</title>
+
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
+	<link id="favicon" rel="icon" type="image/png" href="img/favicon.png">
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu:700" rel="stylesheet" type="text/css">
+	<link href="src/css/index.css" rel="stylesheet">
+
+	<script nomodule>location.href="https://caniuse.com/#feat=es6-module"</script>
+	<script type="module" src="src/js/index.js"></script>
+</head>
+<body>
+	<div id="overlay" class="full animatedAppear">
+		<div id="hello" class="dialog">
+			<h2 id="title">Algae</h2>
+
+			<input id="nick" class="form-control elm" placeholder="Nick" maxlength="15">
+			<select id="gamemode" class="form-control elm" onchange="core.setserver(this.value);" required>
+				<option selected disabled>Servers:</option>
+				<option value="localhost:443">Local</option>
+			</select>
+			<script>document.getElementById("gamemode").selectedIndex = 0;</script>
+			<hr class="spacer">
+			<button id="play-btn" onclick="core.play();" class="btn elm">Play</button>
+			<button id="spectate-btn" onclick="core.spectate();" class="btn elm glyphicon eye-open"></button>
+			<hr class="spacer">
+			<button id="gallery-btn" onclick="core.openSkinsList();" class="btn elm">Skins Gallery</button>
+			<hr>
+
+			<div id="options"></div>
+			<hr>
+
+			<div id="instructions">
+				<span class="text-muted">
+					Move your mouse to control your cell<br>
+					Press <b>Space</b> to split<br>
+					Press <b>W</b> to eject some mass<br>
+				</span>
+			</div>
+			<hr>
+
+			<div id="footer">
+				<a href="https://github.com/CigarProject/Cigar" class="text-muted">CigarProject/Cigar</a>
+				<a href="https://github.com/Luka967/Cigar" class="text-muted">Luka967/Cigar</a>
+				<a href="https://github.com/Tombez/algae" class="text-muted">Tombez/algae</a>
+			</div>
+		</div>
+	</div>
+
+	<div id="connecting" class="full">
+		<div id="connectingInner" class="dialog">
+			<h2>Connecting</h2>
+			<p> If you cannot connect to the servers, check if you have some anti virus or firewall blocking the connection.</p>
+		</div>
+	</div>
+
+	<canvas id="canvas" moz-opaque></canvas>
+	<div style="position:absolute;left:-100px;top:-100px;">α✖ѕψн♐Ƭ☢</div>
+</body>
+</html>
