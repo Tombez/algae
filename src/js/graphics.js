@@ -50,13 +50,13 @@ export const draw = (ctx, options, camera, cellList, stats, leaderboard, cache, 
 			const inverseZ = 1 / camera.z;
 			ctx.scale(inverseZ, inverseZ);
 			if (options.names && cur.name) {
-				cachedText(ctx, cache, cur.name, nameResolution, options.outline);
+				cachedText(ctx, cache, cur.name, nameResolution);
 			}
 			if (options.mass && cur.mine) {
 				const y = Math.min(nameSize, cur.r / 2) * camera.z;
 				ctx.translate(0, y);
 				const mass = (Math.floor(cur.r * cur.r / 100)).toString();
-				cachedText(ctx, cache, mass, nameResolution / 2, options.outline);
+				cachedText(ctx, cache, mass, nameResolution / 2);
 				ctx.translate(0, -y);
 			}
 			ctx.scale(camera.z, camera.z);
@@ -267,26 +267,24 @@ const cachedText = (ctx, cache, string, size, outline) => {
 	const inverseRatio = 1 / ratio;
 	ctx.scale(inverseRatio, inverseRatio);
 };
-export const createCharacter = (char, size, outline) => {
+export const createCharacter = (char, size) => {
 	const canvas = document.createElement("canvas");
 	const ctx = canvas.getContext("2d");
 	ctx.font = getFont(size);
 	canvas.width = ctx.measureText(char).width;
 	canvas.height = size;
-	text(ctx, char, canvas.width / 2, canvas.height / 2, size, outline);
+	text(ctx, char, canvas.width / 2, canvas.height / 2, size);
 	return canvas;
 };
-const text = (ctx, string, x, y, size, outline) => {
+const text = (ctx, string, x, y, size) => {
 	ctx.font = getFont(size);
 	ctx.textBaseline = "middle";
 	ctx.textAlign = "center";
 	ctx.fillStyle = "#fff";
 	ctx.strokeStyle = "#000";
 	ctx.fillText(string, x, y);
-	if (outline) {
-		ctx.lineWidth = size / 30; // Math.max(Math.floor(size / 10), 2)
-		ctx.strokeText(string, x, y);
-	}
+	ctx.lineWidth = size / 30; // Math.max(Math.floor(size / 10), 2)
+	ctx.strokeText(string, x, y);
 };
 
 const prettyPrintTime = (seconds) => {

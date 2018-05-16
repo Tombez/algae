@@ -30,13 +30,12 @@ let knownSkins = new Set();
 let loadedSkins = new Map();
 let overlayVisible = false;
 let guiScale = 1;
-let cache = new CharacterCache((char, size) => graphics.createCharacter(char, size, options.outline));
+let cache = new CharacterCache((char, size) => graphics.createCharacter(char, size));
 let options = {
 	mass: true,
 	names: true,
 	leaderboard: true,
 	grid: true,
-	outline: true,
 	color: true,
 	skins: true,
 	dark: true
@@ -249,7 +248,7 @@ const loop = () => {
 };
 const initWs = (url) => {
 	console.debug("init ws");
-	ws && ws.close();
+	ws && reset();
 	connecting.style.display = "block";
 	ws = new GameSocket(url, wsListeners, checks, USE_HTTPS);
 };

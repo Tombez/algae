@@ -67,12 +67,12 @@ hr {
 	margin: 100px auto;
 }
 #nick {
-	width: 65%;
-	display: inline-block;
+	width: 55%;
+	float: left;
 }
 #gamemode {
-	width: 33%;
-	display: inline-block;
+	width: 43%;
+	float: right;
 }
 #gallery-btn, #footer {
 	width: 100%;

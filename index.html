@@ -27,6 +27,9 @@
 			<select id="gamemode" class="form-control elm" onchange="core.setserver(this.value);" required>
 				<option selected disabled>Servers:</option>
 				<option value="localhost:443">Local</option>
+				<option value="raga.gg:443">Raga.gg Solo</option>
+				<option value="raga.gg:444">Raga.gg Duo</option>
+				<option value="raga.gg:446">Raga.gg Squad</option>
 			</select>
 			<script>document.getElementById("gamemode").selectedIndex = 0;</script>
 			<hr class="spacer">
@@ -63,7 +66,7 @@
 		</div>
 	</div>
 
-	<canvas id="canvas" moz-opaque></canvas>
+	<canvas id="canvas"></canvas>
 	<div style="position:absolute;left:-100px;top:-100px;">α✖ѕψн♐Ƭ☢</div>
 </body>
 </html>
