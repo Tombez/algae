@@ -125,8 +125,8 @@ export class Ejected extends Detailed {
 		this.type = 1;
 	}
 	move(delta) {
-		this.x = this.ox + (this.nx - this.x) * delta;
-		this.y = this.oy + (this.ny - this.y) * delta;
+		this.x = this.ox + (this.nx - this.ox) * delta;
+		this.y = this.oy + (this.ny - this.oy) * delta;
 	}
 	update(x, y) {
 		this.ox = this.x;
@@ -148,9 +148,9 @@ export class Virus extends Basic {
 		this.type = 2;
 	}
 	move(delta) {
-		this.x = this.ox + (this.nx - this.x) * delta;
-		this.y = this.oy + (this.ny - this.y) * delta;
-		this.r = this.or + (this.nr - this.r) * delta;
+		this.x = this.ox + (this.nx - this.ox) * delta;
+		this.y = this.oy + (this.ny - this.oy) * delta;
+		this.r = this.or + (this.nr - this.or) * delta;
 		if (this.r != this.nr || !this.resized) {
 			this.r == this.nr && (this.resized = true);
 			this.points = adjustPoints(this.r);
@@ -181,9 +181,10 @@ export class Cell extends Detailed {
 		this.type = 3;
 	}
 	move(delta) {
-		this.x = this.ox + (this.nx - this.x) * delta;
-		this.y = this.oy + (this.ny - this.y) * delta;
-		this.r = this.or + (this.nr - this.r) * delta;
+		Math.random() < 0.1 && console.log(delta);
+		this.x = this.ox + (this.nx - this.ox) * delta;
+		this.y = this.oy + (this.ny - this.oy) * delta;
+		this.r = this.or + (this.nr - this.or) * delta;
 	}
 	update(x, y, r) {
 		this.ox = this.x;

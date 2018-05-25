@@ -81,7 +81,7 @@ export default class GameSocket extends WebSocket {
 
 					const sColor = readColor ? colorUtils.bytesToHex(colorUtils.scaleBytes(colorBytes, 0.5)) : null;
 					const isMine = this.checks.mine(id);
-					const skin = readSkin ? this.checks.getSkin(skinName) : null;
+					const skin = readSkin && skinName ? this.checks.getSkin(skinName) : null;
 
 					let cell = this.checks.getCell(id);
 					if (cell) {
@@ -92,12 +92,15 @@ export default class GameSocket extends WebSocket {
 					} else {
 						if (isPellet || r < 31) {
 							cell = new Pellet(id, x, y, r, color, Math.random() * 4 | 0 + 6);
-						} else if (isMyEjected || isOtherEjected) {
-							cell = new Ejected(id, x, y, r, color, 20, sColor);
-						} else if (isVirus || isAgitated) {
-							cell = new Virus(id, x, y, r, color, sColor);
 						} else {
-							cell = new Cell(id, x, y, r, color, 50, sColor, name, skin, isMine);
+							if (isMyEjected || isOtherEjected) {
+								cell = new Ejected(id, x, y, r, color, 20, sColor);
+							} else if (isVirus || isAgitated) {
+								cell = new Virus(id, x, y, r, color, sColor);
+							} else {
+								cell = new Cell(id, x, y, r, color, 50, sColor, name, skin, isMine);
+							}
+							cell.updated = msgStamp;
 						}
 						//console.log(cell);
 						this.listeners.newCell(cell);

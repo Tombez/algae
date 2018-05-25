@@ -1,6 +1,7 @@
 import * as graphics from "./graphics.js";
 import GameSocket from "./GameSocket.js";
 import CharacterCache from "./CharacterCache.js";
+//import WebGL2D from "./webgl-2d/webgl-2d.js";
 
 const LOAD_START = Date.now();
 const SKIN_URL = "./skins/";
@@ -14,7 +15,7 @@ let stats;
 let camera;
 let target;
 let mouse;
-//let updTime;
+let updTime;
 
 let canvas;
 let connecting;
@@ -47,7 +48,7 @@ let pressed = new Map([
 	[27, false], // esc
 ]);
 
-/*class Average {
+class Average {
 	constructor() {
 		this.index = 0;
 		this.values = new Array(125).fill(40);
@@ -67,7 +68,7 @@ let pressed = new Map([
 			this.avg /= this.values.length;
 		}
 	}
-}*/
+}
 const reset = () => {
 	window.cells = cells = { // debugging purposes
 		mine: [],
@@ -99,8 +100,8 @@ const reset = () => {
 		x: 0,
 		y: 0,
 		z: 1
-	};
-	//updTime = new Average();
+	},
+	updTime = new Average();
 };
 const domElements = () => {
 	const elm = elem => document.getElementById(elem);
@@ -237,8 +238,10 @@ const loop = () => {
 		if (frameStamp - cell.dead > 120) {
 			cells.list.splice(n--, 1);
 		}
-		const delta = Math.max(Math.min((now - cell.updated) / 120/*(updTime.avg * 2)*/, 1), 0);
 		if (cell.type !== 0) {
+			const delta = Math.max(Math.min((now - cell.updated) / 120/*(updTime.avg * 1)*/, 1), 0);
+			//console.log(now, cell.updated);
+			//console.log(delta);
 			cell.move(delta);
 		}
 	}
@@ -296,8 +299,8 @@ const wsListeners = {
 		leaderboard.items = items;
 		graphics.updateLeaderboard(leaderboard);
 	},
-	upd: () => {}
-	//upd: time => updTime.upd(time)
+	//upd: () => {}
+	upd: time => updTime.upd(time)
 };
 const windowListeners = {
 	keydown: (event) => {
@@ -389,13 +392,14 @@ const init = () => {
 
 	reset();
 	domElements();
+	windowListeners.resize();
+//	WebGL2D.enable(canvas);
 	ctx = canvas.getContext("2d");
 	document.fonts.ready.then(() => cache.clear());
 	window.options = options;
 	window.core = core;
 	attachListeners(window, windowListeners);
 	attachListeners(canvas, canvasListeners);
-	windowListeners.resize();
 
 	let serverIP = /ip=([^&]+)/.exec(window.location.search);
 	serverIP && core.setserver(serverIP[1]);

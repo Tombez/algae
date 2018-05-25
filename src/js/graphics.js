@@ -17,7 +17,7 @@ export const draw = (ctx, options, camera, cellList, stats, leaderboard, cache, 
 		ctx.beginPath();
 		ctx.translate(cur.x, cur.y);
 		if (cur.dead !== Infinity) {
-			ctx.globalAlpha = 1 - (frameStamp - cur.dead) / 100;
+			ctx.globalAlpha = 1 - (frameStamp - cur.dead) / 120;
 		}
 		if (cur.type !== 2) {
 			ctx.scale(cur.r, cur.r);
