@@ -181,7 +181,6 @@ export class Cell extends Detailed {
 		this.type = 3;
 	}
 	move(delta) {
-		Math.random() < 0.1 && console.log(delta);
 		this.x = this.ox + (this.nx - this.ox) * delta;
 		this.y = this.oy + (this.ny - this.oy) * delta;
 		this.r = this.or + (this.nr - this.or) * delta;
