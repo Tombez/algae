@@ -96,11 +96,25 @@ window.pointCache = pointCache;
 class Basic {
 	constructor(id, x, y, r, color) {
 		this.id = id;
-		this.x = x;
-		this.y = y;
-		this.r = r;
+		this.ox = this.nx = this.x = x;
+		this.oy = this.ny = this.y = y;
+		this.or = this.nr = this.r = r;
 		this.color = color;
+		this.updated = 0;
 		this.dead = Infinity;
+	}
+	move(delta) {
+		this.x = this.ox + (this.nx - this.ox) * delta;
+		this.y = this.oy + (this.ny - this.oy) * delta;
+		this.r = this.or + (this.nr - this.or) * delta;
+	}
+	update(x, y, r) {
+		this.ox = this.x;
+		this.oy = this.y;
+		this.or = this.r;
+		this.nx = x;
+		this.ny = y;
+		this.nr = r;
 	}
 }
 class Detailed extends Basic {
@@ -118,21 +132,8 @@ export class Pellet extends Detailed {
 export class Ejected extends Detailed {
 	constructor(id, x, y, r, color, detail, sColor) {
 		super(id, x, y, r, color, detail);
-		this.ox = this.nx = x;
-		this.oy = this.ny = y;
 		this.sColor = sColor;
-		this.updated = 0;
 		this.type = 1;
-	}
-	move(delta) {
-		this.x = this.ox + (this.nx - this.ox) * delta;
-		this.y = this.oy + (this.ny - this.oy) * delta;
-	}
-	update(x, y) {
-		this.ox = this.x;
-		this.oy = this.y;
-		this.nx = x;
-		this.ny = y;
 	}
 }
 export class Virus extends Basic {

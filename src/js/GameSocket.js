@@ -85,10 +85,8 @@ export default class GameSocket extends WebSocket {
 
 					let cell = this.checks.getCell(id);
 					if (cell) {
-						if (cell.type !== 0) {
-							cell.update(x, y, r);
-							cell.updated = msgStamp;
-						}
+						cell.update(x, y, r);
+						cell.updated = msgStamp;
 					} else {
 						if (isPellet || r < 31) {
 							cell = new Pellet(id, x, y, r, color, Math.random() * 4 | 0 + 6);

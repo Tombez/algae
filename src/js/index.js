@@ -238,12 +238,8 @@ const loop = () => {
 		if (frameStamp - cell.dead > 120) {
 			cells.list.splice(n--, 1);
 		}
-		if (cell.type !== 0) {
-			const delta = Math.max(Math.min((now - cell.updated) / 120/*(updTime.avg * 1)*/, 1), 0);
-			//console.log(now, cell.updated);
-			//console.log(delta);
-			cell.move(delta);
-		}
+		const delta = Math.max(Math.min((now - cell.updated) / 120/*(updTime.avg * 1)*/, 1), 0);
+		cell.move(delta);
 	}
 	updateView(frameDelta);
 	graphics.draw(ctx, options, camera, cells.list, stats, leaderboard, cache, guiScale, frameStamp);
