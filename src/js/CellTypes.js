@@ -16,7 +16,6 @@ const generatePoints = (num) => {
 	return points;
 };
 const getPoints = (num) => {
-	//return pointCache;
 	const numPoints = Math.min(num, sample);
 	const twiceNumPoints = numPoints * 2;
 	const points = new Float32Array(twiceNumPoints);
@@ -49,50 +48,6 @@ const sample = 120;
 let pointCache = generatePoints(sample);
 window.pointCache = pointCache;
 
-// eval(parse(`
-// class Cell id x y r color|
-//	 dead: Infinity
-// class Detailed detail
-//	 ^^ Cell
-//	 points: getPoints(detail)
-// class Moving x y
-//	 nx: ox: x
-//	 ny: oy: y
-//	 updated: 0
-//	 move => delta
-//		 x: ox + (nx - ox) * delta
-//		 y: oy + (ny - oy) * delta
-//	 update => nx ny|
-//		 ox: x
-//		 oy: y
-// class Resizing r
-//	 nr: or: r
-//	 move => delta
-//		 r: or + (nr - or) * delta
-//	 update => r
-//		 or: r
-//		 nr: r
-// class Bordered bColor|
-//
-// export
-//	 class Pellet
-//		 ^^ Detailed
-//		 type: 0
-//	 class Ejected
-//		 ^^ Detailed Moving Bordered
-//		 type: 1
-//	 class Virus
-//		 ^^ Cell Moving Resizing Bordered
-//		 points: adjustPoints(r)
-//		 type: 2
-//		 move => delta
-//			 if r != nr
-//				 points: adjustPoints(r)
-//	 class Player name skin mine|
-//		 ^^ Detailed Moving Resizing Bordered
-//		 type: 3
-// `));
-
 class Basic {
 	constructor(id, x, y, r, color) {
 		this.id = id;
@@ -108,13 +63,14 @@ class Basic {
 		this.y = this.oy + (this.ny - this.oy) * delta;
 		this.r = this.or + (this.nr - this.or) * delta;
 	}
-	update(x, y, r) {
+	update(x, y, r, time) {
 		this.ox = this.x;
 		this.oy = this.y;
 		this.or = this.r;
 		this.nx = x;
 		this.ny = y;
 		this.nr = r;
+		this.updated = time;
 	}
 }
 class Detailed extends Basic {
@@ -139,12 +95,8 @@ export class Ejected extends Detailed {
 export class Virus extends Basic {
 	constructor(id, x, y, r, color, sColor) {
 		super(id, x, y, r, color);
-		this.ox = this.nx = x;
-		this.oy = this.ny = y;
-		this.or = this.nr = r;
 		this.points = adjustPoints(r);
 		this.sColor = sColor;
-		this.updated = 0;
 		this.resized = true;
 		this.type = 2;
 	}
@@ -157,41 +109,18 @@ export class Virus extends Basic {
 			this.points = adjustPoints(this.r);
 		}
 	}
-	update(x, y, r) {
-		this.ox = this.x;
-		this.oy = this.y;
-		this.or = this.r;
-		this.nx = x;
-		this.ny = y;
-		this.nr = r;
+	update(x, y, r, time) {
+		Basic.prototype.update.call(this, x, y, r, time);
 		this.resized = false;
 	}
 }
 export class Cell extends Detailed {
 	constructor(id, x, y, r, color, detail, sColor, name, skin, mine) {
 		super(id, x, y, r, color, detail);
-		this.ox = this.nx = x;
-		this.oy = this.ny = y;
-		this.or = this.nr = r;
 		this.sColor = sColor;
 		this.name = name;
 		this.skin = skin;
 		this.mine = mine;
-		this.dead = Infinity;
-		this.updated = 0;
 		this.type = 3;
-	}
-	move(delta) {
-		this.x = this.ox + (this.nx - this.ox) * delta;
-		this.y = this.oy + (this.ny - this.oy) * delta;
-		this.r = this.or + (this.nr - this.or) * delta;
-	}
-	update(x, y, r) {
-		this.ox = this.x;
-		this.oy = this.y;
-		this.or = this.r;
-		this.nx = x;
-		this.ny = y;
-		this.nr = r;
 	}
 }

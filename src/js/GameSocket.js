@@ -4,9 +4,9 @@ import {Pellet, Ejected, Virus, Cell} from "./CellTypes.js";
 import * as colorUtils from "./colorUtils.js";
 
 const KEY_TO_UINT = new Map([
-	[32, new Uint8Array([17])], // space, split
-	[87, new Uint8Array([21])], // w, eject
-	[81, new Uint8Array([18])], // q, toggle free spectate
+	[" ", new Uint8Array([17])], // split
+	["w", new Uint8Array([21])], // eject
+	["q", new Uint8Array([18])], // toggle free spectate
 ]);
 
 export default class GameSocket extends WebSocket {
@@ -34,7 +34,7 @@ export default class GameSocket extends WebSocket {
 		console.log(`ws disconnected ${event.code} '${event.reason}'`);
 	}
 	message(event) {
-		const msgStamp = Date.now();
+		const msgStamp = performance.now();
 		this.listeners.upd(msgStamp);
 		let reader = new Reader(event.data, 0, true);
 		const opcode = reader.getUint8();
@@ -85,8 +85,8 @@ export default class GameSocket extends WebSocket {
 
 					let cell = this.checks.getCell(id);
 					if (cell) {
-						cell.update(x, y, r);
-						cell.updated = msgStamp;
+						cell.move(Math.max(Math.min((msgStamp - cell.updated) / 120, 1), 0));
+						cell.update(x, y, r, msgStamp);
 					} else {
 						if (isPellet || r < 31) {
 							cell = new Pellet(id, x, y, r, color, Math.random() * 4 | 0 + 6);
@@ -159,8 +159,8 @@ export default class GameSocket extends WebSocket {
 		writer._b.push(0, 0, 0, 0);
 		this.send(writer.pack());
 	}
-	sendKeyEvent(keycode) {
-		const uint = KEY_TO_UINT.get(keycode);
+	sendKeyEvent(key) {
+		const uint = KEY_TO_UINT.get(key);
 		if (uint) {
 			this.send(uint);
 		}

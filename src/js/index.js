@@ -1,12 +1,12 @@
 import * as graphics from "./graphics.js";
 import GameSocket from "./GameSocket.js";
 import CharacterCache from "./CharacterCache.js";
-//import WebGL2D from "./webgl-2d/webgl-2d.js";
 
-const LOAD_START = Date.now();
+const LOAD_START = performance.now();
 const SKIN_URL = "./skins/";
 const USE_HTTPS = "https:" == location.protocol;
 const PI_2 = Math.PI * 2;
+const ANIMATION_DELAY = 120;
 
 let cells;
 let leaderboard;
@@ -24,13 +24,13 @@ let gamemode;
 let chatBox;
 let nick;
 
-let frameStamp = Date.now();
+let frameStamp;
 let ws;
 let ctx;
 let knownSkins = new Set();
 let loadedSkins = new Map();
 let overlayVisible = false;
-let guiScale = 1;
+let viewportScale = 1;
 let cache = new CharacterCache((char, size) => graphics.createCharacter(char, size));
 let options = {
 	mass: true,
@@ -42,10 +42,10 @@ let options = {
 	dark: true
 };
 let pressed = new Map([
-	[32, false], // space
-	[87, false], // w
-	[81, false], // q
-	[27, false], // esc
+	[" ", false],
+	["w", false],
+	["q", false],
+	["escape", false],
 ]);
 
 class Average {
@@ -53,7 +53,7 @@ class Average {
 		this.index = 0;
 		this.values = new Array(125).fill(40);
 		this.avg = 40;
-		this.last = Date.now();
+		this.last = performance.now();
 	}
 	upd(time) {
 		const delta = time - this.last;
@@ -117,14 +117,7 @@ const attachListeners = (target, listeners) => {
 	}
 };
 const requestSkinList = () => {
-	/*fetch("checkdir.php").then(response => {
-		if (response.ok) {
-			response.text().then(text => {
-				const skins = text.split("\0").slice(0, -1);
-				knownSkins = new Set(skins);
-			})
-		}
-	});*/
+
 };
 const loadOptions = () => {
 	for (let key of Object.keys(options)) {
@@ -170,7 +163,7 @@ const checks = {
 		console.warn("couldn't load skin " + skinName);
 	}
 };
-const cellSort = (a, b) => a.r !== b.r ? a.r - b.r : a.id - b.id;
+const sortCellsBySize = (a, b) => a.r !== b.r ? a.r - b.r : a.id - b.id;
 const destroyCell = (cell, killer) => {
 	cells.byId.delete(cell.id);
 	if (cell.mine) {
@@ -182,8 +175,11 @@ const destroyCell = (cell, killer) => {
 	}
 	cell.dead = frameStamp;
 	if (killer) {
-		// move cell to killer's position
+		cell.update(killer.nx, killer.ny, cell.r, frameStamp);
 	}
+};
+const calculatePercent = (fraction, step) => {
+	return (step - 1) / (fraction * step) * 2;
 };
 const updateView = (delta) => {
 	let x = 0, y = 0, r = 0, score = 0, len = 0;
@@ -200,29 +196,22 @@ const updateView = (delta) => {
 	if (len) {
 		target.x = x / len;
 		target.y = y / len;
-		target.z = Math.pow(Math.min(64 / r, 1), .4);
-		//camera.x += (target.x - camera.x) / 4;
-		//camera.y += (target.y - camera.y) / 4;
-		camera.x = target.x;
-		camera.y = target.y;
-		//camera.x = (camera.x + target.x) / 2;
-		//camera.y = (camera.y + target.y) / 2;
+		target.z = Math.pow(Math.min(64 / r, 1), .4) * viewportScale * mouse.z;
 		stats.score = score / 100 | 0;
 		stats.maxScore = Math.max(stats.maxScore, stats.score);
 	} else {
 		stats.score = 0;
 		stats.maxScore = 0;
-		/*camera.x += (target.x - camera.x) / 20;
-		camera.y += (target.y - camera.y) / 20;*/
-		camera.x += (target.x - camera.x) / 9 * delta;
-		camera.y += (target.y - camera.y) / 9 * delta;
 	}
-	camera.z += (target.z * guiScale * mouse.z - camera.z) / 9;
+	const twoToDelta = 2 ** delta;
+	const percent = calculatePercent(len ? 2 : 20, twoToDelta);
+	camera.x += (target.x - camera.x) * percent;
+	camera.y += (target.y - camera.y) * percent;
+	camera.z += (target.z - camera.z) * calculatePercent(9, twoToDelta);
 };
-const loop = () => {
-	const now = Date.now();
+const loop = (now) => {
 	const frameDelta = (now - frameStamp) / (1e3 / 60);
-	stats.fps += (1000 / Math.max(now - frameStamp, 1) - stats.fps) / 10;
+	stats.fps += (1e3 / Math.max(now - frameStamp, 1) - stats.fps) / 30;
 	frameStamp = now;
 
 	if (ws && ws.readyState === 1) {
@@ -231,18 +220,18 @@ const loop = () => {
 			(mouse.y - canvas.height / 2) / camera.z + camera.y
 		);
 	}
-
-	cells.list.sort(cellSort);
+	cells.list.sort(sortCellsBySize);
 	for (let n = 0, list = cells.list; n < list.length; n++) {
 		const cell = list[n];
-		if (frameStamp - cell.dead > 120) {
+		if (frameStamp - cell.dead > ANIMATION_DELAY) {
 			cells.list.splice(n--, 1);
+			continue;
 		}
-		const delta = Math.max(Math.min((now - cell.updated) / 120/*(updTime.avg * 1)*/, 1), 0);
+		const delta = Math.max(Math.min((now - cell.updated) / ANIMATION_DELAY, 1), 0);
 		cell.move(delta);
 	}
 	updateView(frameDelta);
-	graphics.draw(ctx, options, camera, cells.list, stats, leaderboard, cache, guiScale, frameStamp);
+	graphics.draw(ctx, options, camera, cells.list, stats, leaderboard, cache, viewportScale, frameStamp);
 	window.requestAnimationFrame(loop);
 };
 const initWs = (url) => {
@@ -278,7 +267,7 @@ const wsListeners = {
 	moveCamera: (x, y, z) => {
 		target.x = x;
 		target.y = y;
-		target.z = z;
+		target.z = z * viewportScale * mouse.z;
 	},
 	clearCells: () => {
 		cells.mine = [];
@@ -293,34 +282,33 @@ const wsListeners = {
 	},
 	leaderboardList: (items) => {
 		leaderboard.items = items;
+		leaderboard.type = "ffa";
 		graphics.updateLeaderboard(leaderboard);
 	},
-	//upd: () => {}
 	upd: time => updTime.upd(time)
 };
 const windowListeners = {
-	keydown: (event) => {
-		if (event.keyCode == 27) {// esc
-			if (!pressed.esc) {
-				pressed.set(event.keyCode, true);
-				if (overlayVisible) {
-					if (cells.mine.length) {
-						hideOverlay();
-					}
-				} else {
-					showOverlay();
+	keydown: ({key}) => {
+		key = key.toLowerCase();
+		if (key == "escape") {
+			pressed.set(key, true);
+			if (overlayVisible) {
+				if (cells.mine.length) {
+					hideOverlay();
 				}
+			} else {
+				showOverlay();
 			}
 		} else if (!overlayVisible) {
-			if (pressed.has(event.keyCode) && !pressed.get(event.keyCode)) {
-				ws.sendKeyEvent(event.keyCode);
-				pressed.set(event.keyCode, true);
+			if (pressed.has(key) && !pressed.get(key)) {
+				ws.sendKeyEvent(key);
+				pressed.set(key, true);
 			}
 		}
 	},
-	keyup: (event) => {
-		if (pressed.get(event.keyCode)) {
-			pressed.set(event.keyCode, false);
+	keyup: ({key}) => {
+		if (pressed.get(key)) {
+			pressed.set(key, false);
 		}
 	},
 	beforeunload: () => {
@@ -335,16 +323,14 @@ const windowListeners = {
 		}
 	},
 	resize: () => {
-		requestAnimationFrame(() => {
-			const cW = canvas.width = window.innerWidth;
-			const cH = canvas.height = window.innerHeight;
-			guiScale = Math.sqrt(Math.min(cW / 1920, cH / 1080));
-		});
+		const w = canvas.width = window.innerWidth;
+		const h = canvas.height = window.innerHeight;
+		viewportScale = Math.max(w / 1920, h / 1080);
 	}
 };
 const canvasListeners = {
 	wheel: (event) => {
-		const direction = event.deltaY > 0 ? .9 : 1.1;
+		const direction = event.deltaY > 0 ? 0.8 : Math.pow(0.8, -1);
 		mouse.z = Math.min(Math.max(mouse.z * direction, 1), 4);
 	},
 	mousemove: (event) => {
@@ -389,7 +375,7 @@ const init = () => {
 	reset();
 	domElements();
 	windowListeners.resize();
-//	WebGL2D.enable(canvas);
+
 	ctx = canvas.getContext("2d");
 	document.fonts.ready.then(() => cache.clear());
 	window.options = options;
@@ -401,10 +387,11 @@ const init = () => {
 	serverIP && core.setserver(serverIP[1]);
 
 	requestSkinList();
+	frameStamp = performance.now();
 	window.requestAnimationFrame(loop);
 	loadOptions();
 	buildOptions();
 	showOverlay();
-	console.info(`init took ${Date.now() - LOAD_START}ms`);
+	console.info(`init took ${performance.now() - LOAD_START}ms`);
 };
 window.addEventListener("DOMContentLoaded", init);

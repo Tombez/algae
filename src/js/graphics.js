@@ -1,13 +1,14 @@
 const TWO_PI = 2 * Math.PI;
 
 const getFont = size => `bold ${size}px Ubuntu`;
-export const draw = (ctx, options, camera, cellList, stats, leaderboard, cache, guiScale, frameStamp) => {
+export const draw = (ctx, options, camera, cellList, stats, leaderboard, cache, viewportScale, frameStamp) => {
 	ctx.resetTransform();
 	background(ctx, options.dark ? "#111" : "#F2FBFF");
 	if (options.grid) {
 		grid(ctx, options.dark ? "#AAA" : "#000", camera);
 	}
 
+	let lastColor;
 	const midX = ctx.canvas.width / 2;
 	const midY = ctx.canvas.height / 2;
 	ctx.translate(midX, midY);
@@ -22,18 +23,13 @@ export const draw = (ctx, options, camera, cellList, stats, leaderboard, cache, 
 		if (cur.type !== 2) {
 			ctx.scale(cur.r, cur.r);
 		}
+		ctx.fillStyle = cur.color;
+		path(ctx, cur.points);
+		ctx.closePath();
+		ctx.fill();
 		if (cur.skin && options.skin && cur.skin.complete && cur.skin.width) {
-			ctx.arc(0, 0, 1, 0, TWO_PI);
 			ctx.clip();
 			ctx.drawImage(cell.skin, -1, -1, 2, 2);
-		} else {
-			path(ctx, cur.points);
-			//triangleFanLoop(ctx, 0, 0, cur.points);
-			ctx.closePath();
-			ctx.fillStyle = cur.color;
-			/*if (cur.type != 3) */ctx.fill();
-			//const first = cur.points[0];
-			//ctx.moveTo(first.x, first.y);
 		}
 		if (cur.type !== 2) {
 			const inverseR = 1 / cur.r;
@@ -60,21 +56,6 @@ export const draw = (ctx, options, camera, cellList, stats, leaderboard, cache, 
 				ctx.translate(0, -y);
 			}
 			ctx.scale(camera.z, camera.z);
-
-			/*ctx.save();
-			ctx.lineWidth = 10;
-			ctx.lineCap = "round";
-			ctx.beginPath();
-			ctx.strokeStyle = "#f00";
-			ctx.moveTo(0, 0);
-			ctx.lineTo(cur.ox - cur.x, cur.oy - cur.y);
-			ctx.stroke();
-			ctx.beginPath();
-			ctx.strokeStyle = "#0f0";
-			ctx.moveTo(0, 0);
-			ctx.lineTo(cur.nx - cur.x, cur.ny - cur.y);
-			ctx.stroke();
-			ctx.restore();*/
 		}
 		ctx.globalAlpha = 1;
 		ctx.translate(-cur.x, -cur.y);
@@ -84,7 +65,7 @@ export const draw = (ctx, options, camera, cellList, stats, leaderboard, cache, 
 	ctx.scale(inverseZ, inverseZ);
 	ctx.translate(-midX, -midY);
 
-	ctx.scale(guiScale, guiScale);
+	ctx.scale(viewportScale, viewportScale);
 
 	ctx.fillStyle = options.dark ? "#fff" : "#000";
 	ctx.textBaseline = "top";
@@ -94,11 +75,10 @@ export const draw = (ctx, options, camera, cellList, stats, leaderboard, cache, 
 	ctx.fillText("FPS: " + (stats.fps | 0), 0, 30);
 
 	if (options.leaderboard) {
-		//console.debug(leaderboard);
-		ctx.drawImage(leaderboard.canvas, ctx.canvas.width / guiScale - 10 - leaderboard.canvas.width, 10);
+		ctx.drawImage(leaderboard.canvas, ctx.canvas.width / viewportScale - 10 - leaderboard.canvas.width, 10);
 	}
-	const inverseGuiScale = 1 / guiScale;
-	ctx.scale(inverseGuiScale, inverseGuiScale);
+	const inverseViewportScale = 1 / viewportScale;
+	ctx.scale(inverseViewportScale, inverseViewportScale);
 };
 const background = (ctx, color) => {
 	ctx.fillStyle = color;
@@ -167,13 +147,6 @@ const triangleFan = (ctx, cx, cy, points) => {
 		ax = bx, ay = by;
 	}
 };
-/*const triangleFanLoop = (ctx, cx, cy, points) => {
-	triangleFan(ctx, cx, cy, points);
-	const len = points.length;
-	let ax = points[len - 2], ay = points[len - 1];
-	let bx = points[0], by = points[1];
-	triangle(ctx, ax, ay, bx, by, cx, cy);
-};*/
 const triangleFanLoop = (ctx, cx, cy, points) => {
 	const len = points.length;
 	let ax = points[0], ay = points[1];
