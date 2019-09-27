@@ -235,8 +235,9 @@ const loop = (now) => {
 	window.requestAnimationFrame(loop);
 };
 const initWs = (url) => {
+	if (ws && ws.server == url && ws.readyState <= 1) return;
 	console.debug("init ws");
-	ws && reset();
+	ws && WebSocket.prototype.close.call(ws);
 	connecting.style.display = "block";
 	ws = new GameSocket(url, wsListeners, checks, USE_HTTPS);
 };
@@ -246,9 +247,7 @@ const wsListeners = {
 	},
 	onclose: () => {
 		reset();
-		setTimeout(() => {
-			initWs(ws.server);
-		}, 5000);
+		setTimeout(() => initWs(ws.server), 5000);
 	},
 	removeCell: (victimID, killerID) => {
 		const victim = cells.byId.get(victimID);
