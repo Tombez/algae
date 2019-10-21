@@ -179,6 +179,7 @@ const destroyCell = (cell, killer) => {
 	}
 };
 const calculatePercent = (fraction, step) => {
+	if (step === Infinity) return 1;
 	return (step - 1) / (fraction * step) * 2;
 };
 const updateView = (delta) => {
