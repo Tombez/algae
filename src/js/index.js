@@ -178,10 +178,6 @@ const destroyCell = (cell, killer) => {
 		cell.update(killer.nx, killer.ny, cell.r, frameStamp);
 	}
 };
-const calculatePercent = (fraction, step) => {
-	if (step === Infinity) return 1;
-	return (step - 1) / (fraction * step) * 2;
-};
 const updateView = (delta) => {
 	let x = 0, y = 0, r = 0, score = 0, len = 0;
 	for (let id of cells.mine) {
@@ -204,11 +200,10 @@ const updateView = (delta) => {
 		stats.score = 0;
 		stats.maxScore = 0;
 	}
-	const twoToDelta = 2 ** delta;
-	const percent = calculatePercent(len ? 2 : 20, twoToDelta);
+	const percent = (1 - (1 / (len ? 2 : 20)) ** delta);
 	camera.x += (target.x - camera.x) * percent;
 	camera.y += (target.y - camera.y) * percent;
-	camera.z += (target.z - camera.z) * calculatePercent(9, twoToDelta);
+	camera.z += (target.z - camera.z) * (1 - (9/10) ** delta);
 };
 const loop = (now) => {
 	const frameDelta = (now - frameStamp) / (1e3 / 60);
