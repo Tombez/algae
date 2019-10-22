@@ -26,7 +26,7 @@
 			<input id="nick" class="form-control elm" placeholder="Nick" maxlength="15">
 			<select id="gamemode" class="form-control elm" onchange="core.setserver(this.value);" required>
 				<option selected disabled>Servers:</option>
-				<option value="localhost:443">Local</option>
+				<option value="localhost:444">Local</option>
 				<option value="public-ogarii.glitch.me">SuperOP</option>
 			</select>
 			<script>document.getElementById("gamemode").selectedIndex = 0;</script>
@@ -63,6 +63,8 @@
 			<p> If you cannot connect to the servers, check if you have some anti virus or firewall blocking the connection.</p>
 		</div>
 	</div>
+    
+    <input type="text" id="chat_textbox" placeholder="Press enter to chat" maxlength="200" />
 
 	<canvas id="canvas"></canvas>
 	<div style="position:absolute;left:-100px;top:-100px;">α✖ѕψн♐Ƭ☢</div>
