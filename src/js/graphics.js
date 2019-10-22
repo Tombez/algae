@@ -277,7 +277,7 @@ export const updateChat = (chat) => {
     for (let i = 0; i < len; i++) {
         width = 0;
         let complexes = lines[i];
-        for (var j = 0; j < complexes.length; j++) {
+        for (let j = 0; j < complexes.length; j++) {
             ctx.font = getFont(18);
             ctx.fillStyle = complexes[j].color;
             ctx.fillText(complexes[j].text, width, 20 * (1 + i));
