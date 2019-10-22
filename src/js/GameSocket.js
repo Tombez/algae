@@ -138,6 +138,35 @@ export default class GameSocket extends WebSocket {
 				}
 				this.listeners.leaderboardList(items);
 				break;
+            case 99:
+				let colorBytes;
+                const flags = reader.getUint8();
+                const color = colorUtils.bytesToHex(colorBytes = reader.getRGB());
+                
+                let name = reader.getStringUTF8().trim();
+                const mes = reader.getStringUTF8();
+                
+                const server = !!(flags & 128);
+                const admin = !!(flags & 64);
+                const moder = !!(flags & 32);
+                
+                let reg = /\{([\w]+)\}/.exec(name);
+                if (reg) name = name.replace(reg[0], "").trim();
+
+                if (server && name !== "SERVER") name = "[Server] " + name;
+                if (admin) name = "[Admin] " + name;
+                if (moder) name = "[Moder] " + name;
+                
+                this.listeners.chatList({
+                    server: server,
+                    admin: admin,
+                    mod: moder,
+                    color: color,
+                    name: name,
+                    message: mes,
+                    time: msgStamp
+                });
+                break;
 		}
 	}
 	sendConnect() {
@@ -151,6 +180,13 @@ export default class GameSocket extends WebSocket {
 		writer.setStringUTF8(name);
 		this.send(writer.pack());
 	}
+    sendChat(text) {
+        let writer = new Writer(true);
+        writer.setUint8(0x63);
+        writer.setUint8(0);
+        writer.setStringUTF8(text);
+        this.send(writer.pack());
+    }
 	sendMouse(x, y) {
 		let writer = new Writer(true);
 		writer.setUint8(0x10);
