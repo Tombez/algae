@@ -1,7 +1,7 @@
 const TWO_PI = 2 * Math.PI;
 
 const getFont = size => `bold ${size}px Ubuntu`;
-export const draw = (ctx, options, camera, cellList, stats, leaderboard, cache, viewportScale, frameStamp) => {
+export const draw = (ctx, options, camera, cellList, stats, leaderboard, chat, cache, viewportScale, frameStamp) => {
 	ctx.resetTransform();
 	background(ctx, options.dark ? "#111" : "#F2FBFF");
 	if (options.grid) {
@@ -77,6 +77,17 @@ export const draw = (ctx, options, camera, cellList, stats, leaderboard, cache, 
 	if (options.leaderboard) {
 		ctx.drawImage(leaderboard.canvas, ctx.canvas.width / viewportScale - 10 - leaderboard.canvas.width, 10);
 	}
+    if ((document.activeElement == chat.box || chat.visible) && options.chat) {
+        chat.box.style.display = "block";
+        ctx.globalAlpha = document.activeElement == chat.box ? 1 : Math.max(1000 - Date.now() + chat.waitUntil, 0) / 1000;
+        ctx.drawImage(
+            chat.canvas,
+            10 / viewportScale,
+            (ctx.canvas.height - 55) / viewportScale - chat.canvas.height
+        );
+        ctx.globalAlpha = 1;
+    } else if (options.chat) chat.box.style.display = "block";
+    else if (!options.chat) chat.box.style.display = "none";
 	const inverseViewportScale = 1 / viewportScale;
 	ctx.scale(inverseViewportScale, inverseViewportScale);
 };
@@ -221,6 +232,58 @@ export const updateLeaderboard = (leaderboard) => {
 		const start = (w > 200) ? 2 : 100 - w * 0.5;
 		ctx.fillText(text, start, 70 + 24 * n);
 	}
+};
+export const updateChat = (chat) => {
+	if (chat.messages.length === 0 || !options.chat) {
+		return chat.visible = false;
+	}
+    
+    chat.visible = true;
+	const canvas = chat.canvas;
+	const ctx = canvas.getContext("2d");
+	const latestMessages = chat.messages.slice(-15);
+    const len = latestMessages.length;
+    
+    let width = 0;
+    let height = 20 * len + 2;
+    
+    let lines = [];
+    for (let i = 0; i < len; i++) {
+        lines.push([
+            {
+                text: latestMessages[i].name,
+                color: latestMessages[i].color
+            }, {
+                text: " " + latestMessages[i].message,
+                color: options.dark ? "#FFF" : "#000"
+            }
+        ]);
+    }
+    
+    for (let i = 0; i < len; i++) {
+        let thisLineWidth = 0;
+        let complexes = lines[i];
+        for (let j = 0; j < complexes.length; j++) {
+            ctx.font = getFont(18);
+            complexes[j].width = ctx.measureText(complexes[j].text).width;
+            thisLineWidth += complexes[j].width;
+        }
+        width = Math.max(thisLineWidth, width);
+    }
+    
+    canvas.width = width;
+    canvas.height = height;
+    
+    for (let i = 0; i < len; i++) {
+        width = 0;
+        let complexes = lines[i];
+        for (var j = 0; j < complexes.length; j++) {
+            ctx.font = getFont(18);
+            ctx.fillStyle = complexes[j].color;
+            ctx.fillText(complexes[j].text, width, 20 * (1 + i));
+            width += complexes[j].width;
+        }
+    }
 };
 const cachedText = (ctx, cache, string, size, outline) => {
 	const chars = cache.retrieve(string, size);
