@@ -10,6 +10,7 @@ const ANIMATION_DELAY = 120;
 
 let cells;
 let leaderboard;
+let chat;
 let minimap;
 let stats;
 let camera;
@@ -21,7 +22,6 @@ let canvas;
 let connecting;
 let overlay;
 let gamemode;
-let chatBox;
 let nick;
 
 let frameStamp;
@@ -39,13 +39,15 @@ let options = {
 	grid: true,
 	color: true,
 	skins: true,
-	dark: true
+	dark: true,
+    chat: true
 };
 let pressed = new Map([
 	[" ", false],
 	["w", false],
 	["q", false],
 	["escape", false],
+	["enter", false],
 ]);
 
 class Average {
@@ -81,6 +83,13 @@ const reset = () => {
 		canvas: document.createElement("canvas"),
 		teams: ["#F33", "#3F3", "#33F"]
 	};
+    chat = {
+        messages: [],
+        waitUntil: 0,
+        canvas: document.createElement("canvas"),
+        box: document.getElementById("chat_textbox"),
+        visible: false
+    };
 	stats = {
 		fps: 0,
 		score: 0,
@@ -227,7 +236,7 @@ const loop = (now) => {
 		cell.move(delta);
 	}
 	updateView(frameDelta);
-	graphics.draw(ctx, options, camera, cells.list, stats, leaderboard, cache, viewportScale, frameStamp);
+	graphics.draw(ctx, options, camera, cells.list, stats, leaderboard, chat, cache, viewportScale, frameStamp);
 	window.requestAnimationFrame(loop);
 };
 const initWs = (url) => {
@@ -280,12 +289,26 @@ const wsListeners = {
 		leaderboard.type = "ffa";
 		graphics.updateLeaderboard(leaderboard);
 	},
+	chatList: (mes) => {
+        const wait = Math.max(3000, 1000 + chat.messages.length * 150);
+        chat.waitUntil = Date.now() - chat.waitUntil > 1000 ? Date.now() + wait : chat.waitUntil + wait;
+        chat.messages.push(mes);
+		graphics.updateChat(chat);
+	},
 	upd: time => updTime.upd(time)
 };
 const windowListeners = {
 	keydown: ({key}) => {
 		key = key.toLowerCase();
-		if (key == "escape") {
+        if (key == "enter") {
+            if (!options.chat) return;
+            if (document.activeElement == chat.box) {
+                chat.box.blur();
+                const txt = chat.box.value;
+                if (txt.length > 0) ws.sendChat(txt);
+                chat.box.value = "";
+            } else chat.box.focus();
+        } else if (key == "escape") {
 			pressed.set(key, true);
 			if (overlayVisible) {
 				if (cells.mine.length) {
@@ -302,6 +325,7 @@ const windowListeners = {
 		}
 	},
 	keyup: ({key}) => {
+		key = key.toLowerCase();
 		if (pressed.get(key)) {
 			pressed.set(key, false);
 		}

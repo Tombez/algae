@@ -66,6 +66,26 @@ hr {
 	width: 350px;
 	margin: 100px auto;
 }
+#chat_textbox {
+    -webkit-transition: all .5s ease-in-out;
+    -moz-transition: all .5s ease-in-out;
+    -o-transition: all .5s ease-in-out;
+    transition: all .5s ease-in-out;
+    position: absolute;
+    z-index: 1;
+    bottom: 10px;
+    background: rgba(0, 0, 0, .2);
+    border: 0px;
+    outline: none;
+    color: #FFF;
+    height: 30px;
+    text-indent: 12px;
+    left: 10px;
+    width: 300px;
+}
+#chat_textbox:focus {
+    background: rgba(0, 0, 0, .5);
+}
 #nick {
 	width: 55%;
 	float: left;
