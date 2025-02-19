@@ -10,8 +10,8 @@ const KEY_TO_UINT = new Map([
 ]);
 
 export default class GameSocket extends WebSocket {
-	constructor(url, listeners, checks, https) {
-		super(`ws${https ? "s" : ""}://${url}`);
+	constructor(url, listeners, checks, wss) {
+		super(`ws${wss ? "s" : ""}://${url}`);
 		this.server = url;
 		this.listeners = listeners;
 		this.checks = checks;

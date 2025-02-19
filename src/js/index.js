@@ -4,7 +4,7 @@ import CharacterCache from "./CharacterCache.js";
 
 const LOAD_START = performance.now();
 const SKIN_URL = "./skins/";
-const USE_HTTPS = "https:" == location.protocol;
+const PAGE_IS_HTTPS = "https:" == location.protocol;
 const PI_2 = Math.PI * 2;
 const ANIMATION_DELAY = 120;
 
@@ -235,7 +235,9 @@ const initWs = (url) => {
 	console.debug("init ws");
 	ws && WebSocket.prototype.close.call(ws);
 	connecting.style.display = "block";
-	ws = new GameSocket(url, wsListeners, checks, USE_HTTPS);
+	const wsRequested = /ws=1/.test(window.location.search);
+	const useWSS = PAGE_IS_HTTPS && !wsRequested;
+	ws = new GameSocket(url, wsListeners, checks, useWSS);
 };
 const wsListeners = {
 	onopen: () => {
